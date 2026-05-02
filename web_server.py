@@ -24,8 +24,8 @@ API = "https://gateway.shangbangzhuan.com"
 PHONE = "18681624624"
 MD5 = "EBCBF97EC1D80C0388D39BF508039BAA"
 # ── 趣闲赚 ──
-QX_COOKIE = "tzb_user_cryptograph=16166236%3Apn69jwXEZLkJlGh8ydQK; tzb_session=ljkelkmadi3hmrnmbvfav02o478205rt; tzb_formhash_cookie=486be00a214d3fa85d6751174d6f0439"
-QX_FORMHASH = "486be00a214d3fa85d6751174d6f0439"
+QX_COOKIE = "tzb_user_cryptograph=16166236%3Apn69jwXEZLkJlGh8ydQK; tzb_session=qo5udfh67ngjlv4fq8ukmc0qs1n8k2kf; tzb_formhash_cookie=b6cdec79ffe46186d957eb828a573102"
+QX_FORMHASH = "b6cdec79ffe46186d957eb828a573102"
 QX_BASE = "https://wap.huayingrc.com"
 
 CATS = {
