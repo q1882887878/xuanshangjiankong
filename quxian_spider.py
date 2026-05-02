@@ -64,6 +64,14 @@ def db():
 
 def save_task(conn, task):
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    # Convert Unix timestamp to formatted date string
+    _tet = task.get("top_end_time") or ""
+    _tet_str = ""
+    if _tet:
+        try:
+            _tet_str = datetime.fromtimestamp(int(_tet)).strftime("%Y-%m-%d %H:%M:%S")
+        except:
+            _tet_str = str(_tet)
     conn.execute("""
         INSERT INTO tasks (source, task_id, title, money, advertiser, avatar,
             current_stock, success_count, category_id, category_name,
@@ -88,15 +96,6 @@ def save_task(conn, task):
         task.get("cat_name", ""),
         int(task.get("vip_id") or 0),
         now,
-        # Convert Unix timestamp to formatted date string
-        _tet = task.get("top_end_time") or ""
-        _tet_str = ""
-        if _tet:
-            try:
-                from datetime import datetime as _dt
-                _tet_str = _dt.fromtimestamp(int(_tet)).strftime("%Y-%m-%d %H:%M:%S")
-            except:
-                _tet_str = str(_tet)
         _tet_str,
         int(task.get("total_votes") or 0),
     ))
