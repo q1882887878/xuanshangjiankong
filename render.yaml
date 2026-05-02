@@ -7,6 +7,10 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: "3.11"
+      - key: QUXIAN_COOKIE
+        sync: false
+      - key: QUXIAN_FORMHASH
+        sync: false
     plan: free
 
   - type: cron
@@ -18,4 +22,8 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: "3.11"
+      - key: QUXIAN_COOKIE
+        sync: false
+      - key: QUXIAN_FORMHASH
+        sync: false
     plan: free
