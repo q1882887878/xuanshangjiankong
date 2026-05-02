@@ -650,10 +650,9 @@ class Handler(BaseHTTPRequestHandler):
                 results.append(f"❌ 赏帮 API: {e}")
             # Test quxian
             try:
-                qx_cookie = os.environ.get("QUXIAN_COOKIE", "")
                 url = "https://wap.huayingrc.com/reward/list/"
-                data = urllib.parse.urlencode({"page": "1", "cat_id": "0", "type": "0", "rand": "0", "limit": "20", "search": "", "level": "0", "formhash": os.environ.get("QUXIAN_FORMHASH", "")}).encode()
-                req = urllib.request.Request(url, data=data, headers={"User-Agent": "Mozilla/5.0", "Cookie": qx_cookie, "Content-Type": "application/x-www-form-urlencoded"})
+                data = urllib.parse.urlencode({"page": "1", "cat_id": "0", "type": "0", "rand": "0", "limit": "20", "search": "", "level": "0", "formhash": QX_FORMHASH}).encode()
+                req = urllib.request.Request(url, data=data, headers={"User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15", "Cookie": QX_COOKIE, "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8", "X-Requested-With": "XMLHttpRequest", "Referer": "https://wap.huayingrc.com/reward/list/"})
                 with urllib.request.urlopen(req, timeout=15) as resp:
                     result = json.loads(resp.read())
                     results.append(f"✅ 趣闲 API: state={result.get('state')}, tasks={len(result.get('reward_list', []))}")
