@@ -3,7 +3,7 @@
 任务列表 API: POST /reward/list/ (form-urlencoded)
 任务详情: GET /reward/{id}/ (HTML embedded Vue SSR data)
 """
-import sys, io, urllib.request, urllib.parse, json, re, sqlite3, time, uuid
+import sys, io, urllib.request, urllib.parse, json, re, sqlite3, time, uuid, os
 from pathlib import Path
 from datetime import datetime
 
@@ -17,8 +17,8 @@ MAX_PAGES = 50
 SOURCE_NAME = "quxian"  # 趣闲赚
 
 # ── Cookie (user-provided, needs refresh periodically) ──
-COOKIE = "tzb_user_cryptograph=16166236%3Apn69jwXEZLkJlGh8ydQK; tzb_session=ljkelkmadi3hmrnmbvfav02o478205rt; tzb_formhash_cookie=486be00a214d3fa85d6751174d6f0439"
-FORMHASH = "486be00a214d3fa85d6751174d6f0439"
+COOKIE = os.environ.get("QUXIAN_COOKIE", "tzb_user_cryptograph=16166236%3Apn69jwXEZLkJlGh8ydQK; tzb_session=ljkelkmadi3hmrnmbvfav02o478205rt; tzb_formhash_cookie=486be00a214d3fa85d6751174d6f0439")
+FORMHASH = os.environ.get("QUXIAN_FORMHASH", "486be00a214d3fa85d6751174d6f0439")
 
 # ── Category mapping ──
 CATEGORY_MAP = {

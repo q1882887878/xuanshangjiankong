@@ -8,7 +8,7 @@
 访问: http://localhost:5000
 """
 
-import sys, io, sqlite3, json, html as _html, uuid as _uuid, time as _time
+import sys, io, sqlite3, json, html as _html, uuid as _uuid, time as _time, os
 import urllib.request, urllib.parse, threading, re as _re
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import parse_qs, urlparse
@@ -621,5 +621,7 @@ if __name__ == "__main__":
     # 后台预抓取未缓存的任务详情
     t = threading.Thread(target=prefetch_all, daemon=True)
     t.start()
-    print(f"http://localhost:5000")
-    HTTPServer(("0.0.0.0", 5000), Handler).serve_forever()
+    # Port from environment variable
+    port = int(os.environ.get("PORT", 5000))
+    print(f"🚀 任务聚合平台启动: http://0.0.0.0:{port}")
+    HTTPServer(("0.0.0.0", port), Handler).serve_forever()

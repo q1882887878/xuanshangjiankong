@@ -4,7 +4,7 @@
 运行赏帮+趣闲爬虫，检查 web 服务器状态
 由 cron 定时任务每30分钟调用一次
 """
-import sys, io, subprocess, socket, time, sqlite3, json
+import sys, io, subprocess, socket, time, sqlite3, json, os
 from pathlib import Path
 from datetime import datetime
 
@@ -13,7 +13,7 @@ if sys.platform == "win32":
 
 PROJECT = Path(__file__).parent
 DB = PROJECT / "tasks.db"
-WEB_SERVER = PROJECT / "web_server.py"
+WEB_PORT = int(os.environ.get("PORT", 5000))
 SHANGBANG = PROJECT / "shangbang_spider.py"
 QUXIAN = PROJECT / "quxian_spider.py"
 LOG_FILE = PROJECT / "spider_log.txt"
@@ -65,19 +65,19 @@ def run_spider(script_path, name, timeout=300):
 
 def ensure_web_server():
     """确保 web 服务器在运行"""
-    if is_port_open(5000):
-        log("  ✅ Web 服务器已在运行 (port 5000)")
+    if is_port_open(WEB_PORT):
+        log(f"  ✅ Web 服务器已在运行 (port {WEB_PORT})")
         return True
     
     log("  ⚠️ Web 服务器未运行，正在启动...")
     try:
         proc = subprocess.Popen(
-            [sys.executable, "-u", str(WEB_SERVER)],
+            [sys.executable, "-u", str(PROJECT / "web_server.py")],
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
             cwd=str(PROJECT)
         )
         time.sleep(3)
-        if is_port_open(5000):
+        if is_port_open(WEB_PORT):
             log(f"  ✅ Web 服务器已启动 (PID: {proc.pid})")
             return True
         else:
