@@ -633,6 +633,33 @@ class Handler(BaseHTTPRequestHandler):
                 cwd=str(DB.parent)
             )
             body = b"<html><body><h2>Spider started!</h2><p>Wait 1-2 minutes, then <a href='/'>refresh</a>.</p></body></html>"
+        elif parsed.path == "/test-api":
+            # Test API connectivity
+            results = []
+            # Test shangbang
+            try:
+                import uuid as _uuid
+                phone = "18681624624"
+                md5_pwd = "EBCBF97EC1D80C0388D39BF508039BAA"
+                url = f"https://gateway.shangbangzhuan.com/user/loginForWeb?account={phone}&credentials={md5_pwd}&appKey=000000&deviceId={_uuid.uuid4()}"
+                req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+                with urllib.request.urlopen(req, timeout=15) as resp:
+                    data = json.loads(resp.read())
+                    results.append(f"✅ 赏帮 API: code={data.get('code')}, msg={data.get('msg')}")
+            except Exception as e:
+                results.append(f"❌ 赏帮 API: {e}")
+            # Test quxian
+            try:
+                qx_cookie = os.environ.get("QUXIAN_COOKIE", "")
+                url = "https://wap.huayingrc.com/reward/list/"
+                data = urllib.parse.urlencode({"page": "1", "cat_id": "0", "type": "0", "rand": "0", "limit": "20", "search": "", "level": "0", "formhash": os.environ.get("QUXIAN_FORMHASH", "")}).encode()
+                req = urllib.request.Request(url, data=data, headers={"User-Agent": "Mozilla/5.0", "Cookie": qx_cookie, "Content-Type": "application/x-www-form-urlencoded"})
+                with urllib.request.urlopen(req, timeout=15) as resp:
+                    result = json.loads(resp.read())
+                    results.append(f"✅ 趣闲 API: state={result.get('state')}, tasks={len(result.get('reward_list', []))}")
+            except Exception as e:
+                results.append(f"❌ 趣闲 API: {e}")
+            body = f"<html><body><h2>API Test</h2><pre>{'<br>'.join(results)}</pre><a href='/'>Back</a></body></html>".encode()
         else:
             self.send_error(404); return
         self.send_response(200)
