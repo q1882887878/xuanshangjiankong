@@ -4,7 +4,7 @@
 运行赏帮+趣闲爬虫，检查 web 服务器状态
 由 cron 定时任务每30分钟调用一次
 """
-import sys, io, subprocess, socket, time, sqlite3, json, os
+import sys, io, subprocess, socket, time, sqlite3, json, os, urllib.request
 from pathlib import Path
 from datetime import datetime
 
@@ -119,6 +119,16 @@ def get_db_stats():
     except Exception as e:
         return {"error": str(e)}
 
+def keep_alive():
+    """Ping web service to prevent Render.com free tier from sleeping"""
+    web_url = os.environ.get("WEB_URL", "https://xuanshangjiankong.onrender.com")
+    try:
+        req = urllib.request.Request(web_url, headers={"User-Agent": "KeepAlive/1.0"})
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            log(f"  ✅ Keep-alive ping OK ({resp.status})")
+    except Exception as e:
+        log(f"  ⚠️ Keep-alive ping failed: {e}")
+
 # ════════════════════════════════════════
 # 主流程
 # ════════════════════════════════════════
@@ -140,6 +150,10 @@ if __name__ == "__main__":
     # 3. 检查 web 服务器
     log("▶ Web 服务器检查")
     web_ok = ensure_web_server()
+    
+    # 4. Keep-alive ping (prevent Render.com free tier from sleeping)
+    log("▶ Keep-alive Ping")
+    keep_alive()
     
     # 4. 数据库统计
     stats = get_db_stats()
