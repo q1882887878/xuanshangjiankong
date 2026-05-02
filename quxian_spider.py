@@ -17,8 +17,8 @@ MAX_PAGES = 50
 SOURCE_NAME = "quxian"  # 趣闲赚
 
 # ── Cookie (user-provided, needs refresh periodically) ──
-COOKIE = os.environ.get("QUXIAN_COOKIE", "tzb_user_cryptograph=16166236%3Apn69jwXEZLkJlGh8ydQK; tzb_session=ljkelkmadi3hmrnmbvfav02o478205rt; tzb_formhash_cookie=486be00a214d3fa85d6751174d6f0439")
-FORMHASH = os.environ.get("QUXIAN_FORMHASH", "486be00a214d3fa85d6751174d6f0439")
+COOKIE = os.environ.get("QUXIAN_COOKIE", "tzb_user_cryptograph=16166236%3Apn69jwXEZLkJlGh8ydQK; tzb_session=qo5udfh67ngjlv4fq8ukmc0qs1n8k2kf; tzb_formhash_cookie=b6cdec79ffe46186d957eb828a573102")
+FORMHASH = os.environ.get("QUXIAN_FORMHASH", "b6cdec79ffe46186d957eb828a573102")
 
 # ── Category mapping ──
 CATEGORY_MAP = {
