@@ -67,6 +67,27 @@ def db():
     c.row_factory = sqlite3.Row
     return c
 
+def init_db():
+    """Initialize database tables if they don't exist"""
+    conn = db()
+    conn.execute("""CREATE TABLE IF NOT EXISTS tasks (
+        source TEXT, task_id TEXT, title TEXT, money REAL,
+        advertiser TEXT, avatar TEXT, current_stock INTEGER,
+        success_count INTEGER, category_id INTEGER,
+        category_name TEXT DEFAULT '', vip_level INTEGER DEFAULT 0,
+        remark TEXT, steps_json TEXT, fetched_at TEXT,
+        expire_time TEXT, cancel_home_time TEXT DEFAULT '',
+        audit_time INTEGER DEFAULT 0, task_time INTEGER DEFAULT 0,
+        max_stock INTEGER DEFAULT 0, task_count INTEGER DEFAULT 0,
+        task_type TEXT DEFAULT '', apply_limit INTEGER DEFAULT 0,
+        avatar_url TEXT DEFAULT '', detail_fetched_at TEXT,
+        PRIMARY KEY (source, task_id))""")
+    conn.commit()
+    conn.close()
+
+# Initialize database on startup
+init_db()
+
 # ── API Token 管理 ──
 TOKEN = None
 TOKEN_TIME = 0
