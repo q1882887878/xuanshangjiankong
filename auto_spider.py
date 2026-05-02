@@ -37,31 +37,40 @@ def is_port_open(port):
 
 def run_spider(script_path, name, timeout=300):
     """运行爬虫脚本，返回 (成功, 输出)"""
-    try:
-        log(f"  启动 {name}...")
-        result = subprocess.run(
-            [sys.executable, "-u", str(script_path)],
-            capture_output=True, text=True, timeout=timeout,
-            cwd=str(PROJECT), encoding="utf-8", errors="replace"
-        )
-        output = (result.stdout or "") + (result.stderr or "")
-        # 只保留最后几行
-        lines = output.strip().split("\n")
-        summary = "\n".join(lines[-5:])
-        if result.returncode == 0:
-            log(f"  ✅ {name} 完成")
-            for line in lines[-3:]:
-                log(f"    {line}")
-        else:
-            log(f"  ⚠️ {name} 返回码 {result.returncode}")
-            log(f"    {summary[:200]}")
-        return result.returncode == 0, output
-    except subprocess.TimeoutExpired:
-        log(f"  ❌ {name} 超时 ({timeout}s)")
-        return False, "timeout"
-    except Exception as e:
-        log(f"  ❌ {name} 异常: {e}")
-        return False, str(e)
+    for attempt in range(2):
+        try:
+            log(f"  启动 {name}{'  (重试)' if attempt else ''}...")
+            result = subprocess.run(
+                [sys.executable, "-u", str(script_path)],
+                capture_output=True, text=True, timeout=timeout,
+                cwd=str(PROJECT), encoding="utf-8", errors="replace"
+            )
+            output = (result.stdout or "") + (result.stderr or "")
+            lines = output.strip().split("\n")
+            summary = "\n".join(lines[-5:])
+            if result.returncode == 0:
+                log(f"  ✅ {name} 完成")
+                for line in lines[-3:]:
+                    log(f"    {line}")
+                return True, output
+            else:
+                if attempt == 0:
+                    log(f"  ⚠️ {name} 失败，3秒后重试...")
+                    time.sleep(3)
+                    continue
+                log(f"  ⚠️ {name} 返回码 {result.returncode}")
+                log(f"    {summary[:200]}")
+                return False, output
+        except subprocess.TimeoutExpired:
+            if attempt == 0:
+                log(f"  ⚠️ {name} 超时，重试...")
+                continue
+            log(f"  ❌ {name} 超时 ({timeout}s)")
+            return False, "timeout"
+        except Exception as e:
+            log(f"  ❌ {name} 异常: {e}")
+            return False, str(e)
+    return False, "max retries"
 
 def ensure_web_server():
     """确保 web 服务器在运行"""
