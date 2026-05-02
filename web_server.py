@@ -670,6 +670,51 @@ class Handler(BaseHTTPRequestHandler):
 
     def log_message(self, *a): pass
 
+    def do_POST(self):
+        """接受本地爬虫推送的任务数据"""
+        if self.path == "/api/sync":
+            try:
+                length = int(self.headers.get("Content-Length", 0))
+                body = self.rfile.read(length)
+                data = json.loads(body)
+                conn = db()
+                count = 0
+                for task in data.get("tasks", []):
+                    conn.execute("""INSERT INTO tasks (source, task_id, title, money, advertiser, avatar,
+                        current_stock, success_count, category_id, category_name,
+                        vip_level, fetched_at, expire_time, max_stock)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        ON CONFLICT(source, task_id) DO UPDATE SET
+                        title=excluded.title, money=excluded.money,
+                        advertiser=excluded.advertiser, avatar=excluded.avatar,
+                        current_stock=excluded.current_stock, success_count=excluded.success_count,
+                        category_name=excluded.category_name, vip_level=excluded.vip_level,
+                        fetched_at=excluded.fetched_at, max_stock=excluded.max_stock""",
+                        (task.get("source"), task.get("task_id"), task.get("title"),
+                         task.get("money", 0), task.get("advertiser", ""), task.get("avatar", ""),
+                         task.get("current_stock", 0), task.get("success_count", 0),
+                         task.get("category_id", 0), task.get("category_name", ""),
+                         task.get("vip_level", 0), task.get("fetched_at", ""),
+                         task.get("expire_time", ""), task.get("max_stock", 0)))
+                    count += 1
+                conn.commit()
+                conn.close()
+                resp = json.dumps({"ok": True, "synced": count}).encode()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Content-Length", str(len(resp)))
+                self.end_headers()
+                self.wfile.write(resp)
+            except Exception as e:
+                resp = json.dumps({"ok": False, "error": str(e)}).encode()
+                self.send_response(500)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Content-Length", str(len(resp)))
+                self.end_headers()
+                self.wfile.write(resp)
+        else:
+            self.send_error(404)
+
 if __name__ == "__main__":
     total, last = get_stats()
     print(f"任务数: {total} | 更新: {last}")
