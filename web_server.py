@@ -404,7 +404,7 @@ footer{{margin-top:5px;text-align:center;padding:10px;background:#fff;border-rad
             <button type="submit" class="sb">搜索</button>
         </form>
     </div>
-    <div class="st">{source_label} · 共 {total_count} 条 · 搜索 {total} 条 · 更新 {h(last_upd)}</div>
+    <div class="st">{source_label} · 共 {total_count} 条 · 搜索 {total} 条 · 更新 {h(last_upd)} · <a href="/run-spider" style="color:#667eea;font-weight:600" onclick="this.innerText='启动中...';return true">🔄 立即抓取</a></div>
     <div class="gc"><table class="gv">
         <tr><th onclick="sc(0)">标题</th><th onclick="sc(1)">价格</th>
         <th class="stock-col" onclick="sc(2)" style="display:none">数</th>
@@ -624,6 +624,15 @@ class Handler(BaseHTTPRequestHandler):
             tid = int(qs.get("id",[0])[0] or 0)
             src = qs.get("source",[""])[0] or None
             body = page_detail(tid, src).encode("utf-8")
+        elif parsed.path == "/run-spider":
+            # Trigger spider in background
+            import subprocess
+            subprocess.Popen(
+                [sys.executable, "-u", str(DB.parent / "auto_spider.py")],
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                cwd=str(DB.parent)
+            )
+            body = b"<html><body><h2>Spider started!</h2><p>Wait 1-2 minutes, then <a href='/'>refresh</a>.</p></body></html>"
         else:
             self.send_error(404); return
         self.send_response(200)
