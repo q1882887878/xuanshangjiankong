@@ -1,0 +1,29 @@
+# Database (will be created fresh on server)
+tasks.db
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Test and temporary files
+test_*.py
+check_*.py
+find_*.py
+migrate_*.py
+fix_*.py
+clear_*.py
+fetch_*.py
+parse_*.py
+
+# Log files
+spider_log.txt
+*.log
+
+# HTML files (reference)
+*.html
+
+# JavaScript files (reference)
+*.js
+
+# Memory files
+memory/
