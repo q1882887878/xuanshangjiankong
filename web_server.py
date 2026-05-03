@@ -633,6 +633,71 @@ class Handler(BaseHTTPRequestHandler):
                 cwd=str(DB.parent)
             )
             body = b"<html><body><h2>Spider started!</h2><p>Wait 1-2 minutes, then <a href='/'>refresh</a>.</p></body></html>"
+        elif parsed.path == "/crawl":
+            # Run spiders inline and return results
+            results = []
+            # Shangbang spider
+            try:
+                import uuid as _uuid2
+                _token = None
+                _dev = str(_uuid2.uuid4())
+                _url = f"{API}/user/loginForWeb?account={PHONE}&credentials={MD5}&appKey=000000&deviceId={_dev}"
+                _hdrs = {"device":"ios","appKey":"000000","version":"2.01","User-Agent":"Mozilla/5.0 (Linux; Android 6.0; Nexus 5) AppleWebKit/537.36","Origin":"https://m.shangbangzhuan.com","Referer":"https://m.shangbangzhuan.com/"}
+                _req = urllib.request.Request(_url, headers=_hdrs)
+                with urllib.request.urlopen(_req, timeout=15) as _r:
+                    _d = json.loads(_r.read())
+                    _token = _d["data"]["uuid"]
+                conn2 = db()
+                _now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                _total = 0
+                for _pg in range(1, 21):
+                    _purl = f"{API}/task/search?current={_pg}&size=100"
+                    _preq = urllib.request.Request(_purl, headers={**_hdrs, "uuid": _token})
+                    with urllib.request.urlopen(_preq, timeout=15) as _pr:
+                        _tasks = json.loads(_pr.read()).get("data", [])
+                    if not _tasks: break
+                    for _t in _tasks:
+                        conn2.execute("""INSERT INTO tasks (source,task_id,title,money,advertiser,avatar,current_stock,success_count,category_id,vip_level,expire_time,fetched_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
+                            ON CONFLICT(source,task_id) DO UPDATE SET title=excluded.title,money=excluded.money,current_stock=excluded.current_stock,success_count=excluded.success_count,fetched_at=excluded.fetched_at""",
+                            ("shangbang",_t.get("id"),_t.get("title",""),_t.get("money",0),_t.get("name",""),_t.get("avatar",""),_t.get("currentStock",0),_t.get("success",0),_t.get("categoryId"),_t.get("vipLevel",0),_t.get("cancelHomeTime",""),_now))
+                    _total += len(_tasks)
+                    if len(_tasks) < 100: break
+                conn2.commit()
+                conn2.close()
+                results.append(f"✅ 赏帮: {_total}条")
+            except Exception as e:
+                results.append(f"❌ 赏帮: {e}")
+            # Quxian spider
+            try:
+                import uuid as _uuid3
+                conn3 = db()
+                _now2 = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                _qxtotal = 0
+                for _qpg in range(1, 51):
+                    _qdata = urllib.parse.urlencode({"page":str(_qpg),"cat_id":"0","type":"0","rand":f"0.{_uuid3.uuid4().hex[:10]}","limit":"20","search":"","search_type":"top","level":"0","formhash":QX_FORMHASH}).encode()
+                    _qreq = urllib.request.Request(f"{QX_BASE}/reward/list/",data=_qdata,headers={"User-Agent":"Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15","Cookie":QX_COOKIE,"Content-Type":"application/x-www-form-urlencoded; charset=UTF-8","X-Requested-With":"XMLHttpRequest","Referer":f"{QX_BASE}/reward/list/"})
+                    with urllib.request.urlopen(_qreq, timeout=15) as _qr:
+                        _qresult = json.loads(_qr.read())
+                    _qtasks = _qresult.get("reward_list",[]) if _qresult.get("state")==1 else []
+                    if not _qtasks: break
+                    for _qt in _qtasks:
+                        _tet = _qt.get("top_end_time","")
+                        _tet_str = ""
+                        if _tet:
+                            try: _tet_str = datetime.fromtimestamp(int(_tet)).strftime("%Y-%m-%d %H:%M:%S")
+                            except: _tet_str = str(_tet)
+                        conn3.execute("""INSERT INTO tasks (source,task_id,title,money,advertiser,avatar,current_stock,success_count,category_id,category_name,vip_level,fetched_at,expire_time,max_stock) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                            ON CONFLICT(source,task_id) DO UPDATE SET title=excluded.title,money=excluded.money,current_stock=excluded.current_stock,success_count=excluded.success_count,category_name=excluded.category_name,fetched_at=excluded.fetched_at""",
+                            ("quxian",_qt.get("reward_id"),_qt.get("reward_title"),float(_qt.get("apply_price",0)),_qt.get("tags_name",""),_qt.get("avatar",""),int(_qt.get("surplus_votes",0)),int(_qt.get("finish_votes",0)),0,_qt.get("cat_name",""),int(_qt.get("vip_id") or 0),_now2,_tet_str,int(_qt.get("total_votes") or 0)))
+                    _qxtotal += len(_qtasks)
+                    if len(_qtasks) < 20: break
+                conn3.commit()
+                conn3.close()
+                results.append(f"✅ 趣闲: {_qxtotal}条")
+            except Exception as e:
+                results.append(f"❌ 趣闲: {e}")
+            _st, _lt = get_stats()
+            body = f"<html><body><h2>爬取完成</h2><pre>{'<br>'.join(results)}</pre><p>数据库: {_st}条, 更新: {_lt}</p><a href='/'>返回首页</a></body></html>".encode()
         elif parsed.path == "/test-api":
             # Test API connectivity
             results = []

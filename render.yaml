@@ -17,7 +17,7 @@ services:
     name: task-radar-spider
     runtime: python
     buildCommand: pip install -r requirements.txt
-    startCommand: python auto_spider.py
+    startCommand: python -c "import urllib.request; urllib.request.urlopen('http://task-radar.onrender.com/crawl', timeout=120); print('done')"
     schedule: "*/10 * * * *"
     envVars:
       - key: PYTHON_VERSION
